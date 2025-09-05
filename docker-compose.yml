@@ -4,8 +4,8 @@ services:
   redis:
     image: redis:6.2-alpine
     container_name: redis
-    ports:
-      - "6379:6379"
+    networks: # Add this
+      - app-network # Add this
 
   api:
     build:
@@ -15,7 +15,6 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     volumes:
       - ./app:/app
-      # Mount the trained model so we don't need to rebuild the image
       - ./model/detector_model:/app/model/detector_model 
     ports:
       - "8000:8000"
@@ -24,13 +23,15 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks: # Add this
+      - app-network # Add this
 
   worker:
     build:
       context: .
       dockerfile: Dockerfile.app
     container_name: worker
-    command: celery -A main.celery_app worker --loglevel=info
+    command: celery -A worker worker --loglevel=info
     volumes:
       - ./app:/app
       - ./model/detector_model:/app/model/detector_model
@@ -39,6 +40,8 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks: # Add this
+      - app-network # Add this
 
   dashboard:
     build:
@@ -49,3 +52,10 @@ services:
       - "8501:8501"
     depends_on:
       - api
+    networks: # Add this
+      - app-network # Add this
+
+# Add this entire block at the end of the file
+networks:
+  app-network:
+    driver: bridge

@@ -1,7 +1,7 @@
 # app/worker.py
 import torch
 from transformers import DistilBertForSequenceClassification, DistilBertTokenizer
-from .celery_config import celery_app
+from celery_config import celery_app
 import time
 
 # Load the model and tokenizer ONCE when the worker starts

@@ -14,3 +14,5 @@ redis
 streamlit
 requests
 pandas
+altair       # Add this line
+matplotlib   # Add this line

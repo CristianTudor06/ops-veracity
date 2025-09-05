@@ -3,13 +3,12 @@ import streamlit as st
 import requests
 import time
 import pandas as pd
+import altair as alt
 
 API_URL = "http://api:8000" # The name of the service in docker-compose
 
 st.set_page_config(layout="wide")
-st.title("🤖 AI-Generated Text Detector")
-
-st.info("This prototype uses a DistilBERT model to classify text as human-written or AI-generated. The system is designed to be scalable and real-time.")
+st.title("AI-Generated Text Detector")
 
 input_text = st.text_area(
     "Enter text to analyze:",
@@ -74,7 +73,11 @@ if st.button("Analyze Text"):
             "Category": ["AI-Generated", "Human-Written"],
             "Probability": [confidence, 100-confidence] if prediction == "AI-generated" else [100-confidence, confidence]
         })
-        st.altair_chart(
-            st.altair_chart(df.plot(kind='bar', x='Category', y='Probability', legend=False)),
-            use_container_width=True
+        chart = alt.Chart(df).mark_bar().encode(
+            x=alt.X('Category', sort=None), # sort=None keeps the order as is
+            y='Probability',
+            color=alt.Color('Category', scale=alt.Scale(domain=['Human-Written', 'AI-Generated'], range=['#2ca02c', '#d62728'])) # Green for Human, Red for AI
+        ).properties(
+            title='Prediction Probability'
         )
+        st.altair_chart(chart, use_container_width=True)

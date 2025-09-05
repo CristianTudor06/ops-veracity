@@ -1,0 +1,16 @@
+# Common
+torch
+transformers
+datasets
+scikit-learn
+
+# API & Worker
+fastapi
+uvicorn
+celery
+redis
+
+# Dashboard
+streamlit
+requests
+pandas

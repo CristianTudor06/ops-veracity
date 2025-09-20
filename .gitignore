@@ -6,6 +6,7 @@ __pycache__/
 # C extensions
 *.so
 model/detector_model
+model/detector_model_v0
 results
 # Distribution / packaging
 .Python

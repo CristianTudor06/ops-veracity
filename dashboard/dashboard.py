@@ -5,10 +5,21 @@ import time
 import pandas as pd
 import altair as alt
 
+
+
+# --- THIS IS THE NEW CODE BLOCK ---
+# Set the page configuration. This MUST be the first Streamlit command.
+st.set_page_config(
+    page_title="Ipsos Veracity",  # The title of the browser tab
+    page_icon="🤖",                # The icon of the browser tab (can be an emoji)
+    layout="wide"                 # Use the full width of the page
+)
+# --- END OF NEW CODE BLOCK ---
+
 API_URL = "http://api:8000" # The name of the service in docker-compose
 
 st.set_page_config(layout="wide")
-st.title("AI-Generated Text Detector")
+st.title("Ipsos Veracity: AI Text Detection")
 
 input_text = st.text_area(
     "Enter text to analyze:",

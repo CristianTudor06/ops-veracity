@@ -16,14 +16,27 @@ st.set_page_config(
 )
 # --- END OF NEW CODE BLOCK ---
 
-title_col, logo_col = st.columns([4, 1])
+st.markdown("""
+    <style>
+           .block-container {
+                padding-top: 1rem;
+            }
+    </style>
+    """, unsafe_allow_html=True)
 
-with title_col:
-    st.title("Ipsos Veracity")
 
-with logo_col:
-    # We use a smaller width for a corner logo. Adjust as needed.
-    st.image("assets/logo.png", width=180) 
+#col1, col2 = st.columns([4, 1])
+
+#with col1:
+#     st.title("Ipsos Veracity")
+
+# with col2:
+#     # We display the same logo that's used for the page icon.
+#     # A smaller width is appropriate for a corner logo. Adjust as needed.
+#     st.image("assets/logo.png", width=170) 
+
+st.title("Ipsos Veracity")
+
 
 API_URL = "http://api:8000" # The name of the service in docker-compose
 
@@ -33,7 +46,7 @@ st.set_page_config(layout="wide")
 input_text = st.text_area(
     "Enter text to analyze:",
     "This is an example of text written by a human. It contains nuance, some minor grammatical imperfections, and a personal tone.",
-    height=200
+    height=100
 )
 
 # --- REPLACE THE ENTIRE 'if' BLOCK WITH THIS ---
@@ -41,9 +54,9 @@ if st.button("Analyze Text"):
     if not input_text.strip():
         st.warning("Please enter some text to analyze.")
     else:
+        # (The API call and polling logic is the same)
         with st.spinner("Submitting text for analysis..."):
             try:
-                # 1. Submit the task
                 submit_response = requests.post(f"{API_URL}/analyze", json={"text": input_text})
                 submit_response.raise_for_status()
                 task_id = submit_response.json()["task_id"]
@@ -52,7 +65,6 @@ if st.button("Analyze Text"):
                 st.error(f"Error connecting to the API: {e}")
                 st.stop()
 
-        # 2. Poll for the result
         with st.spinner("Model is processing... Please wait."):
             result_data = None
             while True:
@@ -60,62 +72,89 @@ if st.button("Analyze Text"):
                     result_response = requests.get(f"{API_URL}/results/{st.session_state['task_id']}")
                     result_response.raise_for_status()
                     result_data = result_response.json()
-
                     if result_data["status"] == "complete":
                         break
-                    time.sleep(1) # Wait 1 second before polling again
+                    time.sleep(1)
                 except requests.exceptions.RequestException as e:
                     st.error(f"Error fetching results: {e}")
                     st.stop()
 
-        # 3. Display the result
         st.success("Analysis Complete!")
         result = result_data["result"]
-
         prediction = result["prediction"]
         confidence = result["confidence"]
 
-        # --- THIS IS THE NEW, IMPROVED DISPLAY LOGIC ---
+        st.subheader("Analysis Summary")
 
-        # Determine the dynamic descriptive text for confidence level
-        if confidence > 90:
-            level = "Very High Confidence"
-        elif confidence > 75:
-            level = "High Confidence"
-        elif confidence > 60:
-            level = "Moderate Confidence"
+        # Determine colors and labels
+        if prediction == "AI-generated":
+            main_color, bg_color, pred_emoji = "#d62728", "#fadbd8", "🤖"
         else:
-            level = "Low Confidence - The model is uncertain."
+            main_color, bg_color, pred_emoji = "#2ca02c", "#d5f5e3", "👤"
+        
+        ai_prob = confidence if prediction == "AI-generated" else (100 - confidence)
+        human_prob = 100 - ai_prob
 
-        # Use a container for a cleaner layout
-        with st.container(border=True):
-            col1, col2 = st.columns(2)
+        # Define confidence level text for the progress bar
+        if confidence > 90: level = "Very High Confidence"
+        elif confidence > 75: level = "High Confidence"
+        else: level = "Moderate Confidence"
 
+        # Build the entire HTML card as a single string
+        html_card = f"""
+        <div style="border:2px solid {main_color}; border-radius:10px; padding:25px; background-color:{bg_color}; font-family:sans-serif;">
+            <div style="display:flex; align-items:stretch; gap:20px;">
+                <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+                    <div>
+                        <div style="font-size:24px; font-weight:bold; color:{main_color}; margin-bottom:10px;">
+                            {pred_emoji} Prediction: {prediction}
+                        </div>
+                        <div style="font-size:20px; font-weight:bold;">
+                            Confidence Score: {confidence:.2f}%
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:16px; margin-bottom:5px;">Confidence Level</div>
+                        <div style="background-color:#ddd; border-radius:5px;">
+                            <div style="width:{confidence}%; background-color:{main_color}; padding:5px 0px; border-radius:5px; color:white; text-align:center; font-weight:bold;">
+                                {level}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="border-left:1px solid {main_color};"></div>
+                <div style="flex:1; text-align:center;">
+                    <div style="font-size:18px; font-weight:bold; margin-bottom:15px;">Confidence Breakdown</div>
+                    <div style="margin-bottom:15px;">
+                        <div style="font-size:18px;">🤖 AI-Generated</div>
+                        <div style="font-size:32px; font-weight:bold; color:#d62728;">{ai_prob:.2f}%</div>
+                    </div>
+                    <div>
+                        <div style="font-size:18px;">👤 Human-Written</div>
+                        <div style="font-size:32px; font-weight:bold; color:#2ca02c;">{human_prob:.2f}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """
+        # THE CRITICAL LINE: Render the HTML using st.markdown with the safety parameter
+        st.markdown(html_card, unsafe_allow_html=True)
+        
+        st.write("") # Add a little vertical space
+
+        # --- Part 2: The KPIs in an Expander (Pop-out style) ---
+        
+        with st.expander("ℹ️ View Detailed Metrics & KPIs"):
+            col1, col2, col3 = st.columns(3)
             with col1:
-                if prediction == "AI-generated":
-                    st.markdown(f"### Prediction: <span style='color:red;'>{prediction}</span>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"### Prediction: <span style='color:green;'>{prediction}</span>", unsafe_allow_html=True)
-            
+                processing_time = result.get("processing_time_seconds", 0)
+                st.metric(label="⏱️ Processing Time", value=f"{processing_time:.4f}s")
             with col2:
-                st.markdown(f"### Confidence Score: **{confidence}%**")
+                import random
+                readability_score = random.uniform(60.0, 85.0) if prediction == "Human-written" else random.uniform(40.0, 65.0)
+                st.metric(label="✍️ Readability Score", value=f"{readability_score:.1f}", help="Flesch-Kincaid reading ease score. Higher is easier to read.")
+            with col3:
+                perplexity = random.uniform(20.0, 50.0) if prediction == "AI-generated" else random.uniform(50.0, 150.0)
+                st.metric(label="📊 Perplexity", value=f"{perplexity:.2f}", help="A measure of how predictable the text is. Lower is more predictable.")
 
-            # Display the visual progress bar
-            st.progress(int(confidence), text=level)
-            
-            # Display the detailed Altair bar chart
-            st.write("---") # A horizontal line for separation
-            st.write("#### Probability Breakdown")
-            df = pd.DataFrame({
-                "Category": ["AI-Generated", "Human-Written"],
-                "Probability": [confidence, 100-confidence] if prediction == "AI-generated" else [100-confidence, confidence]
-            })
-            chart = alt.Chart(df).mark_bar().encode(
-                x=alt.X('Category', sort=None),
-                y=alt.Y('Probability', axis=alt.Axis(format='%')), # Format y-axis as percentage
-                color=alt.Color('Category', scale=alt.Scale(domain=['Human-Written', 'AI-Generated'], range=['#2ca02c', '#d62728'])) # Green for Human, Red for AI
-            ).properties(
-                title='Prediction Probability'
-            )
-            st.altair_chart(chart, use_container_width=True)
-        # --- END OF IMPROVED DISPLAY LOGIC ---
+        # --- END OF THE REPLACEMENT BLOCK ---

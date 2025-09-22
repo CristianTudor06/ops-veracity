@@ -1,4 +1,3 @@
-# app/main.py
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from celery.result import AsyncResult
@@ -8,7 +7,6 @@ import json
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="AI Text Detection API")
-
 
 origins = ["*"] 
 
@@ -20,7 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Connect to Redis to store results
 redis_client = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
 
 class TextIn(BaseModel):

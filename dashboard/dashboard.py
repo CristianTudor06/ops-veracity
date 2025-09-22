@@ -1,20 +1,14 @@
-# dashboard/dashboard.py
 import streamlit as st
 import requests
 import time
 import pandas as pd
 import altair as alt
 
-
-
-# --- THIS IS THE NEW CODE BLOCK ---
-# Set the page configuration. This MUST be the first Streamlit command.
 st.set_page_config(
-    page_title="Ipsos Veracity",  # The title of the browser tab
-    page_icon="🤖",                # The icon of the browser tab (can be an emoji)
-    layout="wide"                 # Use the full width of the page
+    page_title="Ipsos Veracity",
+    page_icon="🤖",
+    layout="wide"
 )
-# --- END OF NEW CODE BLOCK ---
 
 st.markdown("""
     <style>
@@ -24,24 +18,11 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-
-#col1, col2 = st.columns([4, 1])
-
-#with col1:
-#     st.title("Ipsos Veracity")
-
-# with col2:
-#     # We display the same logo that's used for the page icon.
-#     # A smaller width is appropriate for a corner logo. Adjust as needed.
-#     st.image("assets/logo.png", width=170) 
-
 st.title("Ipsos Veracity")
 
-
-API_URL = "http://api:8000" # The name of the service in docker-compose
+API_URL = "http://api:8000"
 
 st.set_page_config(layout="wide")
-
 
 input_text = st.text_area(
     "Enter text to analyze:",
@@ -49,12 +30,10 @@ input_text = st.text_area(
     height=100
 )
 
-# --- REPLACE THE ENTIRE 'if' BLOCK WITH THIS ---
 if st.button("Analyze Text"):
     if not input_text.strip():
         st.warning("Please enter some text to analyze.")
     else:
-        # (The API call and polling logic is the same)
         with st.spinner("Submitting text for analysis..."):
             try:
                 submit_response = requests.post(f"{API_URL}/analyze", json={"text": input_text})
@@ -86,7 +65,6 @@ if st.button("Analyze Text"):
 
         st.subheader("Analysis Summary")
 
-        # Determine colors and labels
         if prediction == "AI-generated":
             main_color, bg_color, pred_emoji = "#d62728", "#fadbd8", "🤖"
         else:
@@ -95,12 +73,10 @@ if st.button("Analyze Text"):
         ai_prob = confidence if prediction == "AI-generated" else (100 - confidence)
         human_prob = 100 - ai_prob
 
-        # Define confidence level text for the progress bar
         if confidence > 90: level = "Very High Confidence"
         elif confidence > 75: level = "High Confidence"
         else: level = "Moderate Confidence"
 
-        # Build the entire HTML card as a single string
         html_card = f"""
         <div style="border:2px solid {main_color}; border-radius:10px; padding:25px; background-color:{bg_color}; font-family:sans-serif;">
             <div style="display:flex; align-items:stretch; gap:20px;">
@@ -137,12 +113,9 @@ if st.button("Analyze Text"):
             </div>
         </div>
         """
-        # THE CRITICAL LINE: Render the HTML using st.markdown with the safety parameter
         st.markdown(html_card, unsafe_allow_html=True)
         
-        st.write("") # Add a little vertical space
-
-        # --- Part 2: The KPIs in an Expander (Pop-out style) ---
+        st.write("")
         
         with st.expander("ℹ️ View Detailed Metrics & KPIs"):
             col1, col2, col3 = st.columns(3)
@@ -156,5 +129,3 @@ if st.button("Analyze Text"):
             with col3:
                 perplexity = random.uniform(20.0, 50.0) if prediction == "AI-generated" else random.uniform(50.0, 150.0)
                 st.metric(label="📊 Perplexity", value=f"{perplexity:.2f}", help="A measure of how predictable the text is. Lower is more predictable.")
-
-        # --- END OF THE REPLACEMENT BLOCK ---

@@ -1,18 +1,13 @@
-# Common
 torch
 transformers
 datasets
 scikit-learn
-
-# API & Worker
 fastapi
 uvicorn
 celery
 redis
-
-# Dashboard
 streamlit
 requests
 pandas
-altair       # Add this line
-matplotlib   # Add this line
+altair
+matplotlib

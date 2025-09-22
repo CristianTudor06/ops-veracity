@@ -1,5 +1,3 @@
-# model/train_model.py
-
 import torch
 from datasets import load_dataset, concatenate_datasets, get_dataset_config_names
 from transformers import (
@@ -12,7 +10,6 @@ import numpy as np
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 def train():
-    # --- STEP 1: LOAD ALL AVAILABLE TRAINING DATA ---
     DATASET_NAME = "Hello-SimpleAI/HC3"
     
     print(f"Fetching all configurations for {DATASET_NAME}...")
@@ -35,7 +32,6 @@ def train():
     full_dataset = concatenate_datasets(all_train_splits)
     print(f"\nTotal examples available: {len(full_dataset)}\n")
 
-    # --- STEP 2: SPLIT THE COMBINED DATASET INTO TRAIN AND EVALUATION SETS ---
     print("Splitting the dataset into train (90%) and evaluation (10%) sets...")
     split_dataset = full_dataset.train_test_split(test_size=0.1, seed=42)
 
@@ -45,43 +41,37 @@ def train():
     print(f"\nUsing {len(train_dataset)} examples for training.")
     print(f"Using {len(eval_dataset)} examples for evaluation.\n")
 
-    # --- STEP 3: ROBUST TOKENIZATION ---
-    
     tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
 
-    # --- THIS IS THE DEFINITIVE, MOST ROBUST FUNCTION ---
     def tokenize_and_format(examples):
         texts = []
         labels = []
 
-        # Format 1: Singular answer columns
         if 'human_answer' in examples and 'chatgpt_answer' in examples:
             for human, ai in zip(examples['human_answer'], examples['chatgpt_answer']):
                 if human and isinstance(human, str):
                     texts.append(human)
-                    labels.append(0) # 0 for human
+                    labels.append(0)
                 if ai and isinstance(ai, str):
                     texts.append(ai)
-                    labels.append(1) # 1 for AI
-        
-        # Format 2: Plural answers columns (lists of strings)
+                    labels.append(1)
+
         elif 'human_answers' in examples and 'chatgpt_answers' in examples:
             for human_list, ai_list in zip(examples['human_answers'], examples['chatgpt_answers']):
                 for human_text in human_list:
                     if human_text and isinstance(human_text, str):
                         texts.append(human_text)
-                        labels.append(0) # human
+                        labels.append(0)
                 for ai_text in ai_list:
                     if ai_text and isinstance(ai_text, str):
                         texts.append(ai_text)
-                        labels.append(1) # AI
+                        labels.append(1)
 
-        # Format 3: Single answer column with a source identifier
         elif 'answer' in examples and 'source' in examples:
             for answer, source in zip(examples['answer'], examples['source']):
                 if not (answer and isinstance(answer, str)):
                     continue
-                if source in ['reddit', 'webtext', 'human']: # Added 'human' for robustness
+                if source in ['reddit', 'webtext', 'human']:
                     texts.append(answer)
                     labels.append(0)
                 elif source == 'chatgpt':
@@ -96,13 +86,9 @@ def train():
         return tokenized_inputs
 
     print("Tokenizing dataset...")
-    # Add `remove_columns` to clean up the dataset after processing
-    # This prevents errors if column numbers differ between batches
     train_dataset = train_dataset.map(tokenize_and_format, batched=True, remove_columns=train_dataset.column_names)
     eval_dataset = eval_dataset.map(tokenize_and_format, batched=True, remove_columns=eval_dataset.column_names)
 
-    # --- STEP 4: TRAINING (Unchanged) ---
-    
     model = DistilBertForSequenceClassification.from_pretrained(
         "distilbert-base-uncased", num_labels=2
     )

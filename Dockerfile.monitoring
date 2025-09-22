@@ -5,7 +5,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the new dashboard script into the container
 COPY ./monitoring_dashboard.py .
 
 EXPOSE 8501

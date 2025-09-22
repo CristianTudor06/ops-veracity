@@ -1,4 +1,3 @@
-# app/worker.py
 import torch
 from transformers import DistilBertForSequenceClassification, DistilBertTokenizer
 from app.celery_config import celery_app
@@ -6,8 +5,7 @@ import time
 import sqlite3
 import os
 
-# --- DATABASE SETUP ---
-DB_PATH = "/app/db/queries.db" # The DB will be stored in a shared volume
+DB_PATH = "/app/db/queries.db"
 
 def init_db():
     """Create the database table if it doesn't exist."""
@@ -27,22 +25,17 @@ def init_db():
     conn.commit()
     conn.close()
     print("Database initialized successfully.")
-# --- END DATABASE SETUP ---
 
-
-# Load the model and tokenizer ONCE when the worker starts
 MODEL_PATH = "/app/model/detector_model"
 print("Loading model...")
 tokenizer = DistilBertTokenizer.from_pretrained(MODEL_PATH)
 model = DistilBertForSequenceClassification.from_pretrained(MODEL_PATH)
-model.eval() # Set model to evaluation mode
+model.eval()
 print("Model loaded successfully.")
 
-# Use GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-# Initialize the database when the worker starts
 init_db()
 
 @celery_app.task(name="analyze_text_task")
@@ -68,7 +61,6 @@ def analyze_text_task(text: str):
     end_time = time.time()
     processing_time = round(end_time - start_time, 4)
 
-    # --- LOGGING LOGIC ---
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -80,7 +72,6 @@ def analyze_text_task(text: str):
         conn.close()
     except Exception as e:
         print(f"Database logging failed: {e}")
-    # --- END LOGGING LOGIC ---
 
     return {
         "prediction": prediction,

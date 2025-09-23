@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("📊 Veracity - Monitoring Dashboard")
+st.title("📊 Veracity Dashboard")
 st.info("This dashboard displays a live log of all queries made to the AI detection model.")
 
 def get_data():
@@ -68,7 +68,7 @@ else:
     st.subheader("Query Log")
     st.dataframe(
         df,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         column_config={
             "timestamp": st.column_config.DatetimeColumn("Time"),

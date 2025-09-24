@@ -1,7 +1,8 @@
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from celery.result import AsyncResult
-from app.worker import analyze_text_task 
+from app.worker import analyze_text_task
+from app.celery_config import celery_app
 import redis
 import json
 from fastapi.middleware.cors import CORSMiddleware

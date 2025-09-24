@@ -5,7 +5,7 @@ import pandas as pd
 import altair as alt
 
 st.set_page_config(
-    page_title="Ipsos Veracity",
+    page_title="Project Veracity",
     page_icon="🤖",
     layout="wide"
 )
@@ -18,9 +18,9 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("Ipsos Veracity")
+st.title("Project Veracity")
 
-API_URL = "http://api:8000"
+API_URL = "https://nginx/api"
 
 st.set_page_config(layout="wide")
 
@@ -36,7 +36,7 @@ if st.button("Analyze Text"):
     else:
         with st.spinner("Submitting text for analysis..."):
             try:
-                submit_response = requests.post(f"{API_URL}/analyze", json={"text": input_text})
+                submit_response = requests.post(f"{API_URL}/analyze", json={"text": input_text}, verify=False)
                 submit_response.raise_for_status()
                 task_id = submit_response.json()["task_id"]
                 st.session_state['task_id'] = task_id
@@ -48,7 +48,7 @@ if st.button("Analyze Text"):
             result_data = None
             while True:
                 try:
-                    result_response = requests.get(f"{API_URL}/results/{st.session_state['task_id']}")
+                    result_response = requests.get(f"{API_URL}/results/{st.session_state['task_id']}", verify=False)
                     result_response.raise_for_status()
                     result_data = result_response.json()
                     if result_data["status"] == "complete":

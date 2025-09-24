@@ -3,7 +3,7 @@ import pandas as pd
 import sqlite3
 import altair as alt
 
-DB_PATH = "db/queries.db"
+DB_PATH = "/database/queries.db"
 
 st.set_page_config(
     page_title="Veracity Monitoring",

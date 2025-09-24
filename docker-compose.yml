@@ -1,4 +1,18 @@
+
 services:
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: nginx
+    ports:
+      - "443:443"
+    depends_on:
+      - api
+      - dashboard
+    networks:
+      - app-network
+
   redis:
     image: redis:6.2-alpine
     container_name: redis
@@ -11,11 +25,10 @@ services:
       dockerfile: Dockerfile.app
     container_name: api
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    working_dir: /code # Explicitly set the working directory
+    # No ports here
     volumes:
-      - .:/app
-      - ./model/detector_model:/app/model/detector_model 
-    ports:
-      - "8000:8000"
+      - ./model/detector_model:/code/model/detector_model
     depends_on:
       - redis
     networks:
@@ -27,10 +40,11 @@ services:
       dockerfile: Dockerfile.app
     container_name: worker
     command: celery -A app.worker worker --loglevel=info
+    working_dir: /code # Explicitly set the working directory
+    # No ports here
     volumes:
-      - .:/app
-      - ./model/detector_model:/app/model/detector_model
-      - db-data:/app/db
+      - ./model/detector_model:/code/model/detector_model
+      - db-data:/database
     depends_on:
       - redis
     networks:
@@ -41,15 +55,14 @@ services:
       context: .
       dockerfile: Dockerfile.dashboard
     container_name: dashboard
-    ports:
-      - "8501:8501"
+    # No ports here
     volumes:
       - ./assets:/app/assets
     depends_on:
       - api
     networks:
       - app-network
-
+  
   monitoring:
     build:
       context: .
@@ -58,9 +71,7 @@ services:
     ports:
       - "8502:8501"
     volumes:
-      - db-data:/app/db
-    depends_on:
-      - worker
+      - db-data:/database
     networks:
       - app-network
 

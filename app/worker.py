@@ -5,7 +5,7 @@ import time
 import sqlite3
 import os
 
-DB_PATH = "/app/db/queries.db"
+DB_PATH = "/database/queries.db"
 
 def init_db():
     """Create the database table if it doesn't exist."""
@@ -26,7 +26,7 @@ def init_db():
     conn.close()
     print("Database initialized successfully.")
 
-MODEL_PATH = "/app/model/detector_model"
+MODEL_PATH = "/code/model/detector_model"
 print("Loading model...")
 tokenizer = DistilBertTokenizer.from_pretrained(MODEL_PATH)
 model = DistilBertForSequenceClassification.from_pretrained(MODEL_PATH)

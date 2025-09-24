@@ -58,6 +58,7 @@ services:
     # No ports here
     volumes:
       - ./assets:/app/assets
+      - ./config.yaml:/app/config.yaml
     depends_on:
       - api
     networks:

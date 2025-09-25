@@ -7,6 +7,7 @@ __pycache__/
 *.so
 model/detector_model_v0
 model/detector_model_v1
+model/detector_model_v2
 results
 # Distribution / packaging
 .Python

@@ -13,6 +13,3 @@ altair
 matplotlib
 tensorflow==2.15.0  # Pinning to a stable version
 tf-keras
-Pillow
-streamlit-authenticator
-PyYAML    

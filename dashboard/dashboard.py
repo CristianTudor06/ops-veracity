@@ -26,7 +26,7 @@ st.set_page_config(layout="wide")
 
 input_text = st.text_area(
 "Enter text to analyze:",
-"This is an example of text written by a human. It contains nuance, some minor grammatical imperfections, and a personal tone.",
+"This is an example of text written by an AI. It contains nuance, some minor grammatical imperfections, and a personal tone.",
 height=100
 )
 
